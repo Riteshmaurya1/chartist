@@ -1,17 +1,142 @@
 ---
 slug: /examples
-description: List of Chartist usage examples.
+description: List of Chartist usage examples with previews and tags.
+title: Examples
 ---
 
 import Link from '@docusaurus/Link';
 import { docs } from './docs';
 
-# Examples
+const styles = {
+  hero: {
+    margin: '2rem auto 1rem',
+    textAlign: 'center',
+    maxWidth: 720,
+  },
+  heading: {
+    fontSize: '2.25rem',
+    lineHeight: 1.2,
+    margin: '0 0 .5rem',
+  },
+  subheading: {
+    color: 'var(--ifm-color-emphasis-700)',
+    margin: 0,
+  },
+  grid: {
+    display: 'grid',
+    gap: '1rem',
+    gridTemplateColumns: 'repeat(1, minmax(0, 1fr))',
+    listStyle: 'none',
+    paddingLeft: 0,
+    margin: '2rem auto',
+  },
+  gridMd: { gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' },
+  gridLg: { gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' },
+  card: {
+    border: '1px solid var(--ifm-color-emphasis-200)',
+    transition: 'transform .15s ease, box-shadow .15s ease, border-color .15s ease',
+  },
+  cardHover: {
+    transform: 'translateY(-2px)',
+    boxShadow: 'var(--ifm-global-shadow-lw)',
+    borderColor: 'var(--ifm-color-primary)',
+  },
+  title: {
+    margin: 0,
+    fontSize: '1.05rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '.5rem',
+  },
+  icon: { fontSize: '1.15rem', lineHeight: 1 },
+  link: { textDecoration: 'none' },
+  linkHover: { textDecoration: 'underline' },
+  desc: { margin: 0, color: 'var(--ifm-color-emphasis-700)' },
+  footer: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '.5rem' },
+  tagList: { display: 'flex', gap: '.25rem', listStyle: 'none', padding: 0, margin: 0, flexWrap: 'wrap' },
+  tag: { textTransform: 'none' },
+};
 
-<ul>
-  {docs.map(({ title, slug }, i) => (
-    <li key={i}>
-      <Link to={slug}>{title}</Link>
+// Small hook-less responsive helpers using matchMedia
+const useResponsiveGrid = () => {
+  const isMd = typeof window !== 'undefined' && window.matchMedia('(min-width: 600px)').matches;
+  const isLg = typeof window !== 'undefined' && window.matchMedia('(min-width: 996px)').matches;
+  if (isLg) return styles.gridLg;
+  if (isMd) return styles.gridMd;
+  return null;
+};
+
+export const ExampleCard = ({title, slug, description, tags}) => {
+  const [hover, setHover] = React.useState(false);
+  return (
+    <li
+      className="card"
+      style={{...styles.card, ...(hover ? styles.cardHover : null)}}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <div className="card__header">
+        <h3 style={styles.title}>
+          <Link to={slug} aria-label={`Open ${title}`} style={styles.link} onFocus={e => (e.target.style.textDecoration='underline')} onBlur={e => (e.target.style.textDecoration='none')} onMouseEnter={e => (e.target.style.textDecoration='underline')} onMouseLeave={e => (e.target.style.textDecoration='none')}>
+            <span style={styles.icon} aria-hidden="true">📊</span>
+            {title}
+          </Link>
+        </h3>
+      </div>
+      {description ? (
+        <div className="card__body">
+          <p style={styles.desc}>{description}</p>
+        </div>
+      ) : null}
+      <div className="card__footer">
+        <div style={styles.footer}>
+          <Link to={slug} className="button button--sm button--primary">
+            View example
+          </Link>
+          {Array.isArray(tags) && tags.length > 0 ? (
+            <ul style={styles.tagList} aria-label="Tags">
+              {tags.map((t, i) => (
+                <li key={i} className="badge badge--secondary" style={styles.tag}>{t}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      </div>
     </li>
+  );
+};
+
+const Grid = ({children}) => {
+  const [cols, setCols] = React.useState(useResponsiveGrid());
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const m1 = window.matchMedia('(min-width: 600px)');
+    const m2 = window.matchMedia('(min-width: 996px)');
+    const onChange = () => setCols(useResponsiveGrid());
+    m1.addEventListener('change', onChange);
+    m2.addEventListener('change', onChange);
+    onChange();
+    return () => {
+      m1.removeEventListener('change', onChange);
+      m2.removeEventListener('change', onChange);
+    };
+  }, []);
+  return (
+    <ul role="list" style={{...styles.grid, ...(cols || {})}}>
+      {children}
+    </ul>
+  );
+};
+
+<section style={styles.hero}>
+  <h1 style={styles.heading}>Examples</h1>
+  <p style={styles.subheading}>
+    Explore ready‑to‑use Chartist examples with clean code, accessible patterns, and responsive layouts.
+  </p>
+</section>
+
+<Grid>
+  {docs.map(({ title, slug, description, tags }, i) => (
+    <ExampleCard key={i} title={title} slug={slug} description={description} tags={tags} />
   ))}
-</ul>
+</Grid>
